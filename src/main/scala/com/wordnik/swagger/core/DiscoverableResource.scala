@@ -1,3 +1,5 @@
+package com.wordnik.swagger.core
+
 /**
  *  Copyright 2011 Wordnik, Inc.
  *
@@ -14,20 +16,16 @@
  *  limitations under the License.
  */
 
-package com.wordnik.swagger.core;
+import javax.ws.rs.{Produces, Path}
+import com.wordnik.swagger.discover.{Configure, Monitor}
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+@Path("/admin.json")
+@Api("/admin")
+@Produces(Array("application/json"))
+class DiscoverableResourceJSON extends Monitor with Configure
 
-@Target(ElementType.METHOD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ApiOperation {
-    String value();
-    String responseClass() default "ok";
-    boolean multiValueResponse() default false; //to indicate if return type will contain one or more of the response value
-    String notes() default "";
-    String tags() default "";
-    String httpMethod() default "";
-}
+@Path("/admin.xml")
+@Api("/admin")
+@Produces(Array("application/xml"))
+class DiscoverableResourceXML extends Monitor with Configure
+ 
