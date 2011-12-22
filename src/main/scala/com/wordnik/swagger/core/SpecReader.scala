@@ -236,28 +236,32 @@ class ApiSpecParser(val hostClass: Class[_], val apiVersion: String, val swagger
       val methodAnnotations = method.getAnnotations
       for (ma <- methodAnnotations) {
         ma match {
-          case p: ApiParamImplicit => {
-            val docParam = new DocumentationParameter
-            docParam.paramType = TYPE_QUERY
+          case pSet: ApiParamsImplicit => {
+            for (p <- pSet.value()) {
 
-            docParam.name = readString(p.name, docParam.name)
-            docParam.description = readString(p.value)
-            docParam.defaultValue = readString(p.defaultValue)
-            try {
-              docParam.allowableValues = convertToAllowableValues(p.allowableValues)
-            } catch {
-              case e: RuntimeException => LOGGER.error("Allowable values annotation is wrong in method  " + method +
-                "for parameter " + docParam.name);
-              e.printStackTrace();
+              val docParam = new DocumentationParameter
+              docParam.paramType = TYPE_QUERY
+
+              docParam.name = readString(p.name)
+              docParam.description = readString(p.value)
+              docParam.defaultValue = readString(p.defaultValue)
+              try {
+                docParam.allowableValues = convertToAllowableValues(p.allowableValues)
+              } catch {
+                case e: RuntimeException => LOGGER.error("Allowable values annotation is wrong in method  " + method +
+                  "for parameter " + docParam.name);
+                e.printStackTrace();
+              }
+              docParam.required = p.required
+              docParam.allowMultiple = p.allowMultiple
+              docParam.paramAccess = readString(p.access)
+              docParam.internalDescription = readString(p.internalDescription)
+              docParam.dataType = readString(p.dataType)
+              docParam.paramType = readString(p.paramType)
+              docParam.paramType = if(docParam.paramType == null) TYPE_QUERY else docParam.paramType
+
+              docOperation.addParameter(docParam)
             }
-            docParam.required = p.required
-            docParam.allowMultiple = p.allowMultiple
-            docParam.paramAccess = readString(p.access)
-            docParam.internalDescription = readString(p.internalDescription)
-            docParam.dataType = readString(p.internalDescription)
-            docParam.paramType = readString(p.paramType, docParam.paramType)
-
-            docOperation.addParameter(docParam)
           };
 
           case _ => Unit
@@ -331,6 +335,10 @@ class ApiSpecParser(val hostClass: Class[_], val apiVersion: String, val swagger
             case _ => Unit
           }
 
+        }
+        
+        if(paramAnnotations.length == 0) {
+          ignoreParam = true
         }
 
         counter = counter + 1;
